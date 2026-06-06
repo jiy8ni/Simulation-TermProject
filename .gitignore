@@ -1,0 +1,11 @@
+# 원천 데이터 (대용량 - GitHub 100MB 한도 초과)
+data/
+
+# 대용량 전처리 결과 (GitHub 100MB 한도 초과)
+data_processed/vehicle_core_20220509.csv
+data_processed/arrival_events.csv
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+*.pyo

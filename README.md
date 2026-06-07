@@ -87,8 +87,9 @@ project_root/
    - 유입 방향별 직진/좌회전/우회전 비율
 7. [data_processed/vehicle_type_ratio.csv](data_processed/vehicle_type_ratio.csv)
    - 차종 비율
-8. [data_processed/signal_plan_as_is.csv](data_processed/signal_plan_as_is.csv)
-   - 선택 시간대의 실제 신호 상태 변화 정보
+8. [data_processed/signal_green_windows_labeled.csv](data_processed/signal_green_windows_labeled.csv)
+   - 신호 입력용 최종 파일: 이동류별 녹색 구간 + 방향(직진/좌/우) 라벨
+   - 원본 신호 문자열은 [data_processed/signal_plan_as_is.csv](data_processed/signal_plan_as_is.csv) 참고
 9. [data_processed/validation_targets.csv](data_processed/validation_targets.csv)
    - Arena 결과와 비교할 속도, 지체, 대기행렬 기준값
 

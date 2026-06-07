@@ -1733,7 +1733,9 @@ def run_make_figures() -> None:
 
 ## 9. 해석할 때 참고할 점
 - 이번 병목 점수 계산에서는 `signal_imbalance`를 `0`으로 두었습니다. 원시 신호 로그만으로는 모든 유입 방향에 대해 바로 비교 가능한 차로별 배분 지표를 안정적으로 만들기 어려웠기 때문입니다.
-- Arena 입력에 바로 쓰는 주요 파일은 `data_processed/arrival_input_arena.csv`, `data_processed/arrival_schedule_arena.csv`, `data_processed/movement_ratio.csv`, `data_processed/vehicle_type_ratio.csv`, `data_processed/signal_plan_as_is.csv`, `data_processed/validation_targets.csv` 입니다.
+- 위 "6. 주요 유입 방향과 이동 방향"의 `미상`은 원본 회전방향 필드가 비어 있던 기록으로, 전체의 약 43.5%를 차지합니다. 처리 방법(재정규화 등)은 팀 논의가 필요합니다. (자세한 내용은 저장소 README의 "팀 논의 필요" 참고)
+- 신호는 `signal_plan_as_is.csv`(원본 문자열) → `signal_green_windows.csv`(녹/적 타이밍) → `signal_green_windows_labeled.csv`(방향 라벨 포함, 네트워크 데이터 사용)까지 가공되어 있습니다.
+- Arena 입력에 바로 쓰는 주요 파일은 `data_processed/arrival_input_arena.csv`, `data_processed/arrival_schedule_arena.csv`, `data_processed/movement_ratio.csv`, `data_processed/vehicle_type_ratio.csv`, `data_processed/signal_green_windows_labeled.csv`, `data_processed/validation_targets.csv` 입니다.
 """
 
     arena_summary = f"""# Arena 입력 요약 보고서
@@ -1758,14 +1760,19 @@ def run_make_figures() -> None:
 
 {dataframe_to_table(top_movements_table)}
 
+- `미상`은 원본 데이터에 회전방향이 기록되지 않은 차량으로, 전체의 약 43.5%입니다.
+- Arena의 회전 확률로 쓸 때 `미상`을 어떻게 처리할지(예: 제외 후 재정규화)는 팀 논의가 필요합니다. (README "팀 논의 필요" 참고)
+
 ## 5. 차종 속성 정보
 차량 엔티티에 차종 속성을 부여할 때 참고할 비율입니다.
 
 {dataframe_to_table(top_vehicle_types_table)}
 
 ## 6. 신호 계획 정보
-- `signal_plan_as_is.csv`에는 선택된 시간대 안에서 실제 신호 상태가 언제 시작되고 끝나는지가 들어 있습니다.
+- `signal_plan_as_is.csv`에는 선택된 시간대 안에서 실제 신호 상태(SUMO 신호 문자열)가 언제 시작되고 끝나는지가 들어 있습니다.
 - `offset_sec`는 각 분석 구간 시작 시점으로부터 몇 초 뒤에 해당 신호 상태가 시작되는지를 뜻합니다.
+- 신호 문자열을 풀어 이동류별 녹/적 타이밍을 정리한 파일이 `signal_green_windows.csv`이고, 여기에 네트워크 데이터(net.xml)로 방향(직진/좌/우) 라벨까지 붙인 최종 파일이 `signal_green_windows_labeled.csv`입니다.
+- Arena의 Hold(Wait for Signal)에 연결할 때는 `signal_green_windows_labeled.csv`의 `direction`과 `green_start_sec`/`green_end_sec`를 쓰면 됩니다.
 
 ## 7. 검증 기준 데이터
 Arena 결과와 비교할 때 사용할 대표 기준값 예시입니다.
@@ -1774,9 +1781,9 @@ Arena 결과와 비교할 때 사용할 대표 기준값 예시입니다.
 
 ## 8. Arena 모델에 연결하는 추천 순서
 - `arrival_input_arena.csv`: 시간대별 차량 생성률 입력
-- `movement_ratio.csv`: 차량 진행 방향 분기 확률 입력
+- `movement_ratio.csv`: 차량 진행 방향 분기 확률 입력 (단, `미상` 처리 방법은 팀 논의 필요)
 - `vehicle_type_ratio.csv`: 차량 차종 속성 부여
-- `signal_plan_as_is.csv`: 신호 현시 재현
+- `signal_green_windows_labeled.csv`: 신호 현시 재현 (이동류별 녹색 구간 + 방향 라벨)
 - `validation_targets.csv`: 속도, 지체, 대기행렬, 처리량 검증
 """
 

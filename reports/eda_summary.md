@@ -96,4 +96,6 @@
 
 ## 9. 해석할 때 참고할 점
 - 이번 병목 점수 계산에서는 `signal_imbalance`를 `0`으로 두었습니다. 원시 신호 로그만으로는 모든 유입 방향에 대해 바로 비교 가능한 차로별 배분 지표를 안정적으로 만들기 어려웠기 때문입니다.
-- Arena 입력에 바로 쓰는 주요 파일은 `data_processed/arrival_input_arena.csv`, `data_processed/arrival_schedule_arena.csv`, `data_processed/movement_ratio.csv`, `data_processed/vehicle_type_ratio.csv`, `data_processed/signal_plan_as_is.csv`, `data_processed/validation_targets.csv` 입니다.
+- 위 "6. 주요 유입 방향과 이동 방향"의 `미상`은 원본 회전방향 필드가 비어 있던 기록으로, 전체의 약 43.5%를 차지합니다. 처리 방법(재정규화 등)은 팀 논의가 필요합니다. (자세한 내용은 저장소 README의 "팀 논의 필요" 참고)
+- 신호는 `signal_plan_as_is.csv`(원본 문자열) → `signal_green_windows.csv`(녹/적 타이밍) → `signal_green_windows_labeled.csv`(방향 라벨 포함, 네트워크 데이터 사용)까지 가공되어 있습니다.
+- Arena 입력에 바로 쓰는 주요 파일은 `data_processed/arrival_input_arena.csv`, `data_processed/arrival_schedule_arena.csv`, `data_processed/movement_ratio.csv`, `data_processed/vehicle_type_ratio.csv`, `data_processed/signal_green_windows_labeled.csv`, `data_processed/validation_targets.csv` 입니다.

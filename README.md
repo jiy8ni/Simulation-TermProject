@@ -379,6 +379,6 @@ GitHub 기본 업로드 한도 때문에 그대로는 push가 안 될 수 있습
 
 ## 참고
 
-- 병목 점수 계산에서 `signal_imbalance`는 현재 `0`으로 두었습니다.
-- 이유는 원시 신호 로그만으로 모든 유입 방향에 대해 직접 비교 가능한 차로/현시 불균형 지표를 안정적으로 만들기 어려웠기 때문입니다.
+- 병목 점수 계산 방법과 `signal_imbalance=0` 한계는 위 "4. 5분 단위 스크리닝"의
+  "병목 점수는 어떻게 계산하나"에 정리되어 있습니다.
 - 자세한 해석은 [reports/eda_summary.md](reports/eda_summary.md)와 [reports/arena_input_summary.md](reports/arena_input_summary.md)를 보면 됩니다.

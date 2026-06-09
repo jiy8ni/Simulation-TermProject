@@ -1733,7 +1733,7 @@ def run_make_figures() -> None:
 
 ## 9. 해석할 때 참고할 점
 - 이번 병목 점수 계산에서는 `signal_imbalance`를 `0`으로 두었습니다. 원시 신호 로그만으로는 모든 유입 방향에 대해 바로 비교 가능한 차로별 배분 지표를 안정적으로 만들기 어려웠기 때문입니다.
-- 위 "6. 주요 유입 방향과 이동 방향"의 `미상`은 원본 회전방향 필드가 비어 있던 기록으로, 전체의 약 43.5%를 차지합니다. 처리 방법(재정규화 등)은 팀 논의가 필요합니다. (자세한 내용은 저장소 README의 "팀 논의 필요" 참고)
+- 위 "6. 주요 유입 방향과 이동 방향"은 통합 폴더 기반이라 `미상`이 약 43.5%입니다. Arena 입력용 회전 비율은 개별 폴더에서 재산출해 `미상`을 2.4~6.7%로 낮춘 `movement_ratio.csv`를 사용합니다. (12단계 / README "해결된 이슈" 참고)
 - 신호는 `signal_plan_as_is.csv`(원본 문자열) → `signal_green_windows.csv`(녹/적 타이밍) → `signal_green_windows_labeled.csv`(방향 라벨 포함, 네트워크 데이터 사용)까지 가공되어 있습니다.
 - Arena 입력에 바로 쓰는 주요 파일은 `data_processed/arrival_input_arena.csv`, `data_processed/arrival_schedule_arena.csv`, `data_processed/movement_ratio.csv`, `data_processed/vehicle_type_ratio.csv`, `data_processed/signal_green_windows_labeled.csv`, `data_processed/validation_targets.csv` 입니다.
 """
@@ -1760,8 +1760,8 @@ def run_make_figures() -> None:
 
 {dataframe_to_table(top_movements_table)}
 
-- `미상`은 원본 데이터에 회전방향이 기록되지 않은 차량으로, 전체의 약 43.5%입니다.
-- Arena의 회전 확률로 쓸 때 `미상`을 어떻게 처리할지(예: 제외 후 재정규화)는 팀 논의가 필요합니다. (README "팀 논의 필요" 참고)
+- 이 표는 통합 폴더 기반(`미상` 약 43.5%)입니다. Arena 입력에는 개별 폴더 기반으로 재산출한
+  `movement_ratio.csv`(미상 2.4~6.7%)를 쓰세요. (12단계 / README "해결된 이슈" 참고)
 
 ## 5. 차종 속성 정보
 차량 엔티티에 차종 속성을 부여할 때 참고할 비율입니다.

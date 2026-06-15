@@ -341,6 +341,15 @@ leg 단위로 도착률·회전비율·신호 녹색요약을 묶어 Arena가 �
 net.xml junction 좌표를 화면 좌표(종횡비 보존)로 변환해 Station을 실제 배치 비율대로 그리고,
 진입로/진출로 edge 길이÷속도로 Route 주행시간을 계산합니다. Arena 애니메이션 배치에 씁니다.
 
+### 17. 신호 1주기 템플릿 (개선안 기반)
+
+- 스크립트: [src/17_make_signal_template.py](src/17_make_signal_template.py)
+- 결과: [data_processed/signal_cycle_template.csv](data_processed/signal_cycle_template.csv)
+
+고정식 신호(녹색 57s + 황색 3s, 60s 슬롯 순환)를 **현시(phase) 단위 템플릿**으로 정리합니다.
+각 현시가 어떤 이동류를 녹색으로 켜는지 + 녹색 길이를 담고 있어, 녹색 길이를 바꾸면
+신호 개선 시나리오가 됩니다. (아래 "개선안 시나리오 확장" 참고.)
+
 > Arena 모델 구성 지침은 [reports/arena_model_guideline.md](reports/arena_model_guideline.md)에
 > 모듈별(Create/Assign/Hold/Process/Station·Route/애니메이션)로 정리되어 있습니다.
 
@@ -365,7 +374,26 @@ python src/13_make_leg_bridge.py
 python src/14_make_service_params.py
 python src/15_make_signal_schedule_arena.py
 python src/16_make_layout_coords.py
+python src/17_make_signal_template.py
 ```
+
+## 개선안(병목 완화) 시나리오 확장
+
+병목을 줄이기 위한 개선안을 **모델 입력만 바꿔서** 비교할 수 있도록 도구를 마련해 두었습니다.
+(자세한 설계는 계획서 `quirky-mixing-yao.md` 7절, 또는 Arena 가이드 참고.)
+
+- **신호 현시/주기 조정**: [src/17_make_signal_template.py](src/17_make_signal_template.py)가
+  현재 신호를 **현시(phase) 템플릿**([data_processed/signal_cycle_template.csv](data_processed/signal_cycle_template.csv))으로
+  정리합니다. 각 현시의 녹색 길이(`green_sec`)를 바꾸면 신호 개선 시나리오가 됩니다.
+  (교차로15 주요 현시 5개·주기 ~300s, 교차로16 현시 4개·주기 ~240s)
+- **차로 수 변경**: `config/lane_overrides_<이름>.json`에 `{"이동류키": 차로수}`를 적고
+  `python src/14_make_service_params.py <이름>` 실행 → `leg_service_params_<이름>.csv` 생성.
+  (예시: [config/lane_overrides_example.json](config/lane_overrides_example.json))
+- **가변차선**: 시간대별 차로 배정 변경. 구체적 시나리오(어느 차로를 언제 전환)가 정해지면
+  시간가변 차로 표를 추가합니다(계획서 7절 참고).
+
+> 핵심: Arena 모델을 만들 때 신호·차로 수를 블록에 **하드코딩하지 말고** 데이터/변수로 두면,
+> 시나리오는 입력 파일만 바꿔 재실행하면 됩니다.
 
 ## 실행 환경
 
@@ -409,6 +437,8 @@ python src/16_make_layout_coords.py
 | `signal_schedule_arena.csv` | 이동류별 신호 녹/적 토글 이벤트 (Arena 신호 로직) |
 | `layout_coords.csv` | Station 화면 좌표 (애니메이션 배치) |
 | `layout_routes.csv` | 진입/진출 Route 주행시간 (애니메이션) |
+| `signal_cycle_template.csv` | 신호 현시(phase) 템플릿 (신호 개선 시나리오 기반) |
+| `leg_service_params_<이름>.csv` | 차로 수 변경 시나리오별 서비스 파라미터 |
 
 ## GitHub에 올릴 때 주의할 점
 

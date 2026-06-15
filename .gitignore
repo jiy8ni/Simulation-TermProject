@@ -9,3 +9,6 @@ data_processed/arrival_events.csv
 __pycache__/
 *.pyc
 *.pyo
+
+# 로컬 에이전트/IDE 작업 폴더
+.claude/

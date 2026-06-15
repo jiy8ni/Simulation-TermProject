@@ -28,6 +28,10 @@ Arena 입력 파일이 **신호까지 모두 준비 완료**되었습니다.
 도착률, 도착 스케줄, 방향 비율, 차종 비율, 검증 지표, 그리고 신호(타이밍 + 방향 라벨)까지
 바로 쓸 수 있습니다.
 
+또한 **교차로 15+16 연동 코리더(Tier 1) 모델링 입력**도 준비됐습니다. 출발지를 물리 진입로(4지)로
+묶은 leg 단위 도착률·회전비율·차로수·신호 스케줄·애니메이션 좌표까지 산출했고, Arena 모듈별
+구성 지침은 [reports/arena_model_guideline.md](reports/arena_model_guideline.md)에 정리되어 있습니다.
+
 신호 데이터가 어떻게 완성되었는지 쉽게 풀면 이렇습니다.
 
 - 신호 데이터(`signal_plan_as_is.csv`)에는 `grrrrrGGGGr...` 같은 **신호 문자열**이 있습니다.
@@ -57,6 +61,7 @@ Arena 입력 파일이 **신호까지 모두 준비 완료**되었습니다.
 project_root/
   data/                  # 원천 데이터
   data_processed/        # 전처리 결과 CSV
+  arena_inputs/          # Arena에 직접 쓰는 파일만 모은 폴더 (data_processed 복사본)
   figures/               # EDA 그림
   reports/               # 팀원용 요약 보고서
   src/                   # 단계별 파이프라인 스크립트
@@ -280,6 +285,51 @@ Arena에는 신호등 객체가 없어서, "이동류(칸)별로 언제 녹색/�
 이 단계에서 **회전 비율만 개별 교차로 폴더에서 다시 산출**해 `unknown`을 2.4~6.7%로 낮춥니다.
 (자세한 배경은 아래 "해결된 이슈" 참고) 차량 수·도착률·검증 지표는 6단계 결과(통합 기반)를 그대로 씁니다.
 
+### 13. 출발지 → 물리 진입로(leg) 브리지
+
+- 스크립트: [src/13_make_leg_bridge.py](src/13_make_leg_bridge.py)
+- 결과:
+  - [data_processed/leg_from_inter_map.csv](data_processed/leg_from_inter_map.csv) (출발지→leg 매핑, 방위·각오차)
+  - [data_processed/leg_arrival_signal_bridge.csv](data_processed/leg_arrival_signal_bridge.csv) (leg별 도착률·회전비율·신호요약)
+  - [data_processed/leg_arrival_5min.csv](data_processed/leg_arrival_5min.csv) (leg별 5분 단위 도착률)
+
+도착 데이터는 "직전 출발 교차로(`from_inter_id`)" 단위(교차로15는 11개, 16은 8개)이고,
+신호 데이터는 "물리 진입 leg(`approach_node`)" 단위(교차로당 4개)라 키 체계가 다릅니다.
+이 단계에서 **net.xml 좌표로 방위각을 계산해 각 출발지를 가장 가까운 물리 leg(4개)에 배정**하고,
+leg 단위로 도착률·회전비율·신호 녹색요약을 묶어 Arena가 사거리 모양 그대로 쓸 수 있게 합니다.
+연동 leg(교차로15 216288 ↔ 교차로16 215434)도 여기서 식별됩니다.
+
+### 14. 이동류 서비스 파라미터 (포화교통류율)
+
+- 스크립트: [src/14_make_service_params.py](src/14_make_service_params.py)
+- 결과: [data_processed/leg_service_params.csv](data_processed/leg_service_params.csv)
+
+데이터에 포화류율/서비스시간이 없어, **HCM 표준 1900 veh/h/차로(방출 헤드웨이 ≈ 1.9s)** 를 가정합니다.
+`signal_movement_map.csv`의 차로수(직진 4·좌 1·우 1)로 이동류별 Process 자원 capacity와
+서비스시간을 산출합니다. (Arena: Seize 차로자원 → Delay 1.9s → Release)
+
+### 15. 신호 스케줄(Arena 신호 로직용)
+
+- 스크립트: [src/15_make_signal_schedule_arena.py](src/15_make_signal_schedule_arena.py)
+- 결과: [data_processed/signal_schedule_arena.csv](data_processed/signal_schedule_arena.csv)
+
+`signal_green_windows_labeled.csv`의 녹색 구간을 이동류(movement)별 녹/적 **토글 이벤트**
+(`green_start`=1, `green_end`=0)로 펼칩니다. Arena의 신호 컨트롤 로직이 이 타임라인을 재생해
+상태변수 `Green[movement]`을 토글하고, Hold(Wait for Signal)가 이를 보고 차량을 잡았다 풉니다.
+
+### 16. 애니메이션 레이아웃 좌표·주행시간
+
+- 스크립트: [src/16_make_layout_coords.py](src/16_make_layout_coords.py)
+- 결과:
+  - [data_processed/layout_coords.csv](data_processed/layout_coords.csv) (Station 화면 좌표)
+  - [data_processed/layout_routes.csv](data_processed/layout_routes.csv) (진입/진출 Route 주행시간)
+
+net.xml junction 좌표를 화면 좌표(종횡비 보존)로 변환해 Station을 실제 배치 비율대로 그리고,
+진입로/진출로 edge 길이÷속도로 Route 주행시간을 계산합니다. Arena 애니메이션 배치에 씁니다.
+
+> Arena 모델 구성 지침은 [reports/arena_model_guideline.md](reports/arena_model_guideline.md)에
+> 모듈별(Create/Assign/Hold/Process/Station·Route/애니메이션)로 정리되어 있습니다.
+
 ## 실행 순서
 
 아래 순서대로 실행하면 전체 파이프라인을 다시 만들 수 있습니다.
@@ -297,6 +347,10 @@ python src/09_make_figures.py
 python src/10_signal_to_arena.py
 python src/11_map_signal_movements.py
 python src/12_movement_ratio_individual.py
+python src/13_make_leg_bridge.py
+python src/14_make_service_params.py
+python src/15_make_signal_schedule_arena.py
+python src/16_make_layout_coords.py
 ```
 
 ## 실행 환경
@@ -334,6 +388,13 @@ python src/12_movement_ratio_individual.py
 | `signal_green_windows_labeled.csv` | 녹색 구간 + 방향 라벨 (**Arena 신호 입력용 최종 파일**) |
 | `signal_movement_state_labeled.csv` | 상세 상태 표 + 방향 라벨 |
 | `validation_targets.csv` | Arena 검증용 기준 지표 |
+| `leg_from_inter_map.csv` | 출발지 → 물리 진입로(leg) 매핑 (방위 기반) |
+| `leg_arrival_signal_bridge.csv` | leg별 도착률·회전비율·신호 녹색요약 (Arena Create/Hold 요약) |
+| `leg_arrival_5min.csv` | leg별 5분 단위 도착률 (Arena Schedule 입력) |
+| `leg_service_params.csv` | 이동류별 차로수·포화서비스시간 (Arena Process) |
+| `signal_schedule_arena.csv` | 이동류별 신호 녹/적 토글 이벤트 (Arena 신호 로직) |
+| `layout_coords.csv` | Station 화면 좌표 (애니메이션 배치) |
+| `layout_routes.csv` | 진입/진출 Route 주행시간 (애니메이션) |
 
 ## GitHub에 올릴 때 주의할 점
 
@@ -383,8 +444,6 @@ GitHub 기본 업로드 한도 때문에 그대로는 push가 안 될 수 있습
 - 스크립트: [src/12_movement_ratio_individual.py](src/12_movement_ratio_individual.py).
   기존 통합 기반 버전은 [data_processed/movement_ratio_combined_legacy.csv](data_processed/movement_ratio_combined_legacy.csv)로 백업해 두었습니다.
 
-> 참고: 네트워크 데이터(net.xml)로 회전을 기하학적으로 계산하거나 원본 궤적의
-> heading(`agl`)으로 재계산하는 방법도 검토했으나, 깨끗한 개별 폴더가 이미 있어 불필요했습니다.
 
 ## 참고
 

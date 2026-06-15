@@ -1,21 +1,30 @@
-# Arena 입력 파일 (교차로 15+16 연동 코리더, Tier 1)
+# Arena에 넣을 파일 모음 (교차로 15·16)
 
-Arena 모델에 **직접 쓰이는 파일만** 모은 폴더입니다. (원본은 `../data_processed/`에 있고,
-이 폴더는 복사본입니다. 재생성은 `src/13~16` 스크립트.)
+Arena 모델에 **직접 쓰이는 파일만** 모아둔 폴더입니다.
+(원본은 `../data_processed/`에 있고 여기는 복사본입니다. 다시 만들려면 `src/13~16` 실행.)
 
-모델 구성 지침: [../reports/arena_model_guideline.md](../reports/arena_model_guideline.md)
+**먼저 읽어보세요 → [../reports/arena_model_guideline.md](../reports/arena_model_guideline.md)**
+(Arena 블록을 어떻게 연결하는지 처음부터 끝까지 쉬운 말로 설명한 가이드입니다.)
 
-| 파일 | Arena 모듈 | 용도 |
+## 용어 두 개만 알고 가기
+- **진입로**: 사거리로 들어오는 한쪽 도로. 한 교차로에 4개(동·서·남·북).
+- **이동류**: "어느 진입로에서 + 어느 방향(좌/직/우)으로" 가는 차 무리. 두 교차로 합쳐 21개.
+
+## 파일이 각각 어디에 쓰이나
+
+| 파일 | Arena에서 하는 일 | 내용 |
 | --- | --- | --- |
-| `leg_arrival_5min.csv` | **Create** | leg별 5분 단위 도착률 (Schedule 입력) |
-| `leg_arrival_signal_bridge.csv` | **Assign (Turn)** | leg별 회전비율(`ratio_left/straight/right`) → DISC |
-| `vehicle_type_ratio.csv` | **Assign (VehType)** | 차종 비율 → DISC + Entity Picture |
-| `signal_schedule_arena.csv` | **Hold (신호 로직)** | 이동류별 녹/적 토글 이벤트 → `Green[movement]` |
-| `leg_service_params.csv` | **Process** | 이동류별 차로수(자원 cap)·서비스시간(1.9s) |
-| `layout_coords.csv` | **Station (애니)** | Station 화면 좌표(축척) |
-| `layout_routes.csv` | **Route (애니)** | 진입/진출 Route 주행시간 |
-| `validation_targets.csv` | **검증** | 통과량·속도·지체·대기행렬 기준값 |
+| `leg_arrival_5min.csv` | 차 만들기(Create) | 진입로별로 5분마다 차가 몇 대 오는지 |
+| `leg_arrival_signal_bridge.csv` | 회전 정하기(Assign) | 진입로별 좌/직/우 비율 |
+| `vehicle_type_ratio.csv` | 차종 정하기(Assign) | 승용·버스·화물 비율 |
+| `signal_schedule_arena.csv` | 신호등(Hold) | 이동류별 초록불 켜짐/꺼짐 시각 |
+| `leg_service_params.csv` | 통과 시간(Process) | 이동류별 차로 수와 빠지는 시간(약 1.9초/대) |
+| `layout_coords.csv` | 화면 배치(Station) | 교차로·진입로를 찍을 화면 좌표 |
+| `layout_routes.csv` | 주행(Route) | 진입로·진출로 주행 시간 |
+| `validation_targets.csv` | 결과 검증 | 실제 통과량·속도·지체·대기 (모델과 비교용) |
 
-- movement key = `inter_id_approachnode_dircode` (예: `215173_216288_s`), 총 21개.
-- 8개 진입 leg: 교차로15 = 216151/216286/216287/216288, 교차로16 = 215431/215432/215433/215434.
-- 검증치 단위 주의: `avg_speed`=m/s, queue=분율, `avg_delay`는 단위 확정 필요(가이드라인 8절).
+## 참고
+- 이동류 이름 = `교차로번호_진입로번호_방향` (예: `215173_216288_s` = 교차로15 216288 진입로 직진).
+- 8개 진입로: 교차로15 = 216151·216286·216287·216288, 교차로16 = 215431·215432·215433·215434.
+- 검증 숫자 단위: `avg_speed`=초속(m/s, 시속은 ×3.6), 대기 비율=0~1, `avg_delay`(지체)는
+  단위가 불분명하니 정확히 비교하기 전에 확인 필요(가이드 7절 참고).
